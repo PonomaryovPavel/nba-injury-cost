@@ -12,18 +12,30 @@ SURFACE = "#fcfcfb"
 INK = "#0b0b0b"
 INK_SOFT = "#52514e"
 GRID = "#e3e2de"
-STRUCTURAL = "#2a78d6"   # категориальный слот 1
-SOFT_TISSUE = "#eb6834"  # категориальный слот 2
+RUPTURE = "#2a78d6"      # категориальный слот 1
+BONE_LIGAMENT = "#eb6834"  # слот 2
+SOFT_TISSUE = "#1baf7a"  # слот 3
 
-# Структурное повреждение = нарушена целостность ткани (разрыв, перелом).
-# Остальное — перегрузка, ушибы, растяжения без разрыва.
-STRUCTURAL_LABELS = {
+# Группировка по механизму повреждения, а не по числу дней.
+# Разрыв крупной структуры, перелом кости или повреждение связки,
+# и всё остальное — мягкие ткани и перегрузка.
+RUPTURE_LABELS = {
     "Разрыв ахиллова сухожилия",
     "Разрыв ПКС (ACL)",
     "Разрыв мениска",
-    "Разрыв связок колена (MCL/PCL)",
-    "Перелом",
 }
+BONE_LIGAMENT_LABELS = {
+    "Перелом",
+    "Повреждение связок колена (MCL/PCL)",
+}
+
+
+def tier_color(label: str) -> str:
+    if label in RUPTURE_LABELS:
+        return RUPTURE
+    if label in BONE_LIGAMENT_LABELS:
+        return BONE_LIGAMENT
+    return SOFT_TISSUE
 
 mpl.rcParams.update({
     "figure.facecolor": SURFACE,
@@ -76,7 +88,7 @@ def median_by_injury(table: pd.DataFrame, out: Path, overall_median: float,
     t = table.sort_values("median")
     top_label = t.index[-1]
     top_value = t["median"].iloc[-1]
-    colors = [STRUCTURAL if i in STRUCTURAL_LABELS else SOFT_TISSUE for i in t.index]
+    colors = [tier_color(i) for i in t.index]
 
     fig, ax = plt.subplots(figsize=(10, 7.4), dpi=200)
     ax.barh(t.index, t["median"], height=0.68, color=colors)
@@ -91,10 +103,13 @@ def median_by_injury(table: pd.DataFrame, out: Path, overall_median: float,
     ax.tick_params(axis="y", labelsize=10)
 
     handles = [
-        plt.Rectangle((0, 0), 1, 1, color=STRUCTURAL),
+        plt.Rectangle((0, 0), 1, 1, color=RUPTURE),
+        plt.Rectangle((0, 0), 1, 1, color=BONE_LIGAMENT),
         plt.Rectangle((0, 0), 1, 1, color=SOFT_TISSUE),
     ]
-    ax.legend(handles, ["Структурное повреждение", "Мягкие ткани и перегрузка"],
+    ax.legend(handles,
+              ["Разрыв крупной структуры", "Перелом кости или связка",
+               "Мягкие ткани и перегрузка"],
               loc="lower right", frameon=False, fontsize=9.5)
 
     fig.tight_layout()
@@ -121,7 +136,7 @@ def spread_median_p90(table: pd.DataFrame, out: Path) -> Path:
     for y, (_, row) in enumerate(t.iterrows()):
         ax.plot([row["median"], row["p90"]], [y, y], color=GRID, linewidth=2.5,
                 solid_capstyle="round", zorder=1)
-    ax.scatter(t["median"], range(len(t)), s=62, color=STRUCTURAL, zorder=3,
+    ax.scatter(t["median"], range(len(t)), s=62, color=RUPTURE, zorder=3,
                edgecolor=SURFACE, linewidth=1.6, label="Медиана")
     ax.scatter(t["p90"], range(len(t)), s=62, color=SOFT_TISSUE, zorder=3,
                edgecolor=SURFACE, linewidth=1.6, label="90-й перцентиль")
@@ -154,7 +169,7 @@ def duration_distribution(episodes: pd.DataFrame, out: Path) -> Path:
     share_long = (days > 90).mean() * 100
 
     fig, ax = plt.subplots(figsize=(10, 5), dpi=200)
-    ax.hist(days, bins=60, color=STRUCTURAL, log=True)
+    ax.hist(days, bins=60, color=RUPTURE, log=True)
 
     median = days.median()
     ax.axvline(median, color=SOFT_TISSUE, linewidth=2)

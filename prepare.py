@@ -33,7 +33,10 @@ INJURY_RULES: list[tuple[str, str, bool]] = [
     ("Разрыв ахиллова сухожилия",       r"achilles",                    True),
     ("Разрыв ПКС (ACL)",                r"\bacl\b|anterior cruciate",   False),
     ("Разрыв мениска",                  r"meniscus",                    False),
-    ("Разрыв связок колена (MCL/PCL)",  r"\bmcl\b|\bpcl\b|collateral",  False),
+    # Внимание: сюда попадают и разрывы, и растяжения. Проверка по тексту
+    # показала, что признак разрыва есть лишь у 4 эпизодов из 45, поэтому
+    # категория называется «повреждение», а не «разрыв».
+    ("Повреждение связок колена (MCL/PCL)", r"\bmcl\b|\bpcl\b|collateral", False),
     ("Перелом",                         r"fractur|broken",              False),
     ("Плантарный фасциит",              r"plantar",                     False),
     ("Сотрясение мозга",                r"concussion",                  False),
