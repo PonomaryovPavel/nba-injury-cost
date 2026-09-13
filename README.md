@@ -113,3 +113,6 @@ jupyter lab analysis.ipynb
 
 [Pro Sports Transactions](https://www.prosportstransactions.com/), собраны через
 [gboogy/nba-injury-data-scraper](https://github.com/gboogy/nba-injury-data-scraper).
+
+Продолжение по этим же данным — сроки возвращения в состав после тяжёлой травмы:
+[nba-return-after-injury](https://github.com/PonomaryovPavel/nba-return-after-injury).
